@@ -1,0 +1,6 @@
+@ZakirPro_HostAddress = http://localhost:5168
+
+GET {{ZakirPro_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
