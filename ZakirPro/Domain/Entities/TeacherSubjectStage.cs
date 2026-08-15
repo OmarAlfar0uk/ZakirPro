@@ -18,6 +18,7 @@ public class TeacherSubjectStage
     public Stage Stage { get; set; } = null!;
 
     // Navigation
-    public ICollection<Lecture> Lectures { get; set; } = [];
+    public ICollection<Lecture>                    Lectures     { get; set; } = [];
     public ICollection<StudentTeacherSubjectStage> StudentLinks { get; set; } = [];
+    public ICollection<Exam>                       Exams        { get; set; } = [];
 }

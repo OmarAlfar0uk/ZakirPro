@@ -41,6 +41,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFileService, FileService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+        // ── Background services ───────────────────────────────────────────────
+        services.AddHostedService<ZakirPro.Common.BackgroundServices.ExamAutoSubmitService>();
+
         // ── Caching ───────────────────────────────────────────────────────────
         services.AddMemoryCache();
 
