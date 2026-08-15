@@ -1,4 +1,3 @@
-using System.Text;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -6,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Serilog;
+using System.Text;
 using ZakirPro.Common.Abstractions;
 using ZakirPro.Common.Behaviors;
 using ZakirPro.Common.Infrastructure;
@@ -41,9 +41,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFileService, FileService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-        // ── Background services ───────────────────────────────────────────────
-        services.AddHostedService<ZakirPro.Common.BackgroundServices.ExamAutoSubmitService>();
-
         // ── Caching ───────────────────────────────────────────────────────────
         services.AddMemoryCache();
 
@@ -62,15 +59,15 @@ public static class ServiceCollectionExtensions
             {
                 opts.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer           = true,
-                    ValidIssuer              = config["JwtSettings:Issuer"],
-                    ValidateAudience         = true,
-                    ValidAudience            = config["JwtSettings:Audience"],
+                    ValidateIssuer = true,
+                    ValidIssuer = config["JwtSettings:Issuer"],
+                    ValidateAudience = true,
+                    ValidAudience = config["JwtSettings:Audience"],
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey         = new SymmetricSecurityKey(
+                    IssuerSigningKey = new SymmetricSecurityKey(
                                                   Encoding.UTF8.GetBytes(config["JwtSettings:Key"]!)),
-                    ValidateLifetime         = true,
-                    ClockSkew                = TimeSpan.Zero
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
                 };
             });
 
@@ -108,9 +105,12 @@ public static class ServiceCollectionExtensions
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(c =>
         {
+            // ── هذا هو سطر الحل لمشكلة تعارض الأسماء (Commands) ──
+            c.CustomSchemaIds(type => type.FullName);
+
             c.SwaggerDoc("v1", new OpenApiInfo
             {
-                Title   = "Zaker Pro API",
+                Title = "Zaker Pro API",
                 Version = "v1",
                 Description = "SaaS educational platform for independent teachers."
             });
@@ -118,21 +118,16 @@ public static class ServiceCollectionExtensions
             // JWT bearer button in Swagger UI
             var securityScheme = new OpenApiSecurityScheme
             {
-                Name         = "Authorization",
-                Type         = SecuritySchemeType.Http,
-                Scheme       = "bearer",
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
                 BearerFormat = "JWT",
-                In           = ParameterLocation.Header,
-                Description  = "Enter your JWT token (without 'Bearer ' prefix)."
+                In = ParameterLocation.Header,
+                Description = "Enter your JWT token (without 'Bearer ' prefix)."
             };
             c.AddSecurityDefinition("Bearer", securityScheme);
-            c.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecuritySchemeReference("Bearer", doc, null),
-                    new List<string>()
-                }
-            });
+
+
         });
 
         return services;
