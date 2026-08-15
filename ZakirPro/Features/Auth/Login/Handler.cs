@@ -73,10 +73,11 @@ public class Handler : IRequestHandler<Command, EndpointResponse<LoginResponse>>
             : "JwtSettings:RefreshTokenExpiryDays";
         var expiryDays = _configuration.GetValue<int>(expiryDaysKey, request.RememberMe ? 30 : 7);
 
-        // 8. Update user refresh token
-        user.RefreshToken = refreshToken;
+        // 8. Update user refresh token and record last login time
+        user.RefreshToken       = refreshToken;
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(expiryDays);
-        user.UpdatedAt = DateTime.UtcNow;
+        user.LastLoginAt        = DateTime.UtcNow;
+        user.UpdatedAt          = DateTime.UtcNow;
 
         // Since Query() is AsNoTracking, calling Update() attaches + marks Modified
         userRepo.Update(user);

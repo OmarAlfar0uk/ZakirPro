@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ZakirPro.Data;
@@ -11,9 +12,11 @@ using ZakirPro.Data;
 namespace ZakirPro.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260815194958_AddLastLoginAt")]
+    partial class AddLastLoginAt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,40 +24,6 @@ namespace ZakirPro.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("ZakirPro.Domain.Entities.Attendance", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("LectureId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("MarkedByUserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("StudentId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LectureId");
-
-                    b.HasIndex("StudentId", "LectureId")
-                        .IsUnique();
-
-                    b.ToTable("Attendances");
-                });
 
             modelBuilder.Entity("ZakirPro.Domain.Entities.AuditLog", b =>
                 {
@@ -486,21 +455,6 @@ namespace ZakirPro.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("PasswordResetOtp")
-                        .HasColumnType("text");
-
-                    b.Property<int>("PasswordResetOtpAttempts")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("PasswordResetOtpExpiry")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("PasswordResetToken")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("PasswordResetTokenExpiry")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("RefreshToken")
                         .HasColumnType("text");
 
@@ -593,25 +547,6 @@ namespace ZakirPro.Migrations
                         .HasColumnType("text");
 
                     b.HasDiscriminator().HasValue("Teacher");
-                });
-
-            modelBuilder.Entity("ZakirPro.Domain.Entities.Attendance", b =>
-                {
-                    b.HasOne("ZakirPro.Domain.Entities.Lecture", "Lecture")
-                        .WithMany("Attendances")
-                        .HasForeignKey("LectureId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ZakirPro.Domain.Entities.Student", "Student")
-                        .WithMany()
-                        .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Lecture");
-
-                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("ZakirPro.Domain.Entities.Choice", b =>
@@ -765,11 +700,6 @@ namespace ZakirPro.Migrations
                     b.Navigation("Attempts");
 
                     b.Navigation("Questions");
-                });
-
-            modelBuilder.Entity("ZakirPro.Domain.Entities.Lecture", b =>
-                {
-                    b.Navigation("Attendances");
                 });
 
             modelBuilder.Entity("ZakirPro.Domain.Entities.Question", b =>

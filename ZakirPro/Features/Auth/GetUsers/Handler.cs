@@ -54,7 +54,8 @@ public class Handler : IRequestHandler<Query, EndpointResponse<PaginatedResult<U
                 u.Email,
                 u.Role.ToString(),
                 u.IsActive,
-                u.CreatedAt))
+                u.CreatedAt,
+                u.LastLoginAt))
             .ToListAsync(cancellationToken);
 
         var result = new PaginatedResult<UserListDto>(items, totalCount, page, pageSize);

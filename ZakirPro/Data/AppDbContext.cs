@@ -26,6 +26,9 @@ public class AppDbContext : DbContext
     public DbSet<Lecture>                    Lectures                    => Set<Lecture>();
     public DbSet<AuditLog>                   AuditLogs                   => Set<AuditLog>();
 
+    // ── Attendance ────────────────────────────────────────────────────────────
+    public DbSet<Attendance> Attendances => Set<Attendance>();
+
     // ── Exam engine ───────────────────────────────────────────────────────────
     public DbSet<Exam>               Exams               => Set<Exam>();
     public DbSet<Question>           Questions           => Set<Question>();
@@ -84,6 +87,11 @@ public class AppDbContext : DbContext
         // ── Unique index: one OrderIndex per question in an exam ──────────────
         mb.Entity<Question>()
             .HasIndex(q => new { q.ExamId, q.OrderIndex })
+            .IsUnique();
+
+        // ── Unique index: one attendance record per student per lecture ─────────
+        mb.Entity<Attendance>()
+            .HasIndex(a => new { a.StudentId, a.LectureId })
             .IsUnique();
 
         // ── Relationships ──────────────────────────────────────────────────────
@@ -193,6 +201,20 @@ public class AppDbContext : DbContext
             .HasForeignKey(sa => sa.SelectedChoiceId)
             .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Attendance → Student
+        mb.Entity<Attendance>()
+            .HasOne(a => a.Student)
+            .WithMany()
+            .HasForeignKey(a => a.StudentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Attendance → Lecture
+        mb.Entity<Attendance>()
+            .HasOne(a => a.Lecture)
+            .WithMany(l => l.Attendances)
+            .HasForeignKey(a => a.LectureId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // ── Property constraints ───────────────────────────────────────────────
         mb.Entity<User>().Property(u => u.Email).HasMaxLength(256);
