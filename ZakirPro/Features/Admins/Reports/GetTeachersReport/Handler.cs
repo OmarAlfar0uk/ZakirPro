@@ -38,7 +38,9 @@ public class Handler : IRequestHandler<Query, EndpointResponse<PaginatedResult<T
                 LectureCount = t.TeacherSubjectStages.SelectMany(tss => tss.Lectures).Count(l => !l.IsDeleted),
                 ExamCount = t.TeacherSubjectStages.SelectMany(tss => tss.Exams).Count(e => !e.IsDeleted),
                 TotalAttendances = t.TeacherSubjectStages.SelectMany(tss => tss.Lectures).SelectMany(l => l.Attendances).Count(),
-                PresentAttendances = t.TeacherSubjectStages.SelectMany(tss => tss.Lectures).SelectMany(l => l.Attendances).Count(a => a.Status == AttendanceStatus.Present)
+                PresentAttendances = t.TeacherSubjectStages.SelectMany(tss => tss.Lectures).SelectMany(l => l.Attendances).Count(a => a.Status == AttendanceStatus.Present),
+                TotalSubmissions = t.TeacherSubjectStages.SelectMany(tss => tss.Assignments).SelectMany(a => a.Submissions).Count(s => !s.IsDeleted && s.Status != AssignmentSubmissionStatus.NotSubmitted),
+                ExpectedSubmissions = t.TeacherSubjectStages.Sum(tss => tss.Assignments.Count(a => !a.IsDeleted) * tss.StudentLinks.Count(sl => sl.Student.IsActive && !sl.Student.IsDeleted))
             })
             .ToListAsync(cancellationToken);
 
@@ -49,7 +51,7 @@ public class Handler : IRequestHandler<Query, EndpointResponse<PaginatedResult<T
             t.LectureCount,
             t.ExamCount,
             t.TotalAttendances > 0 ? (decimal)t.PresentAttendances / t.TotalAttendances : 0m,
-            0m // AssignmentSubmissionRate placeholder
+            t.ExpectedSubmissions > 0 ? (decimal)t.TotalSubmissions / t.ExpectedSubmissions : 0m
         )).ToList();
 
         return EndpointResponse<PaginatedResult<TeacherReportDto>>.SuccessResponse(new PaginatedResult<TeacherReportDto>(items, total, request.Page, request.PageSize));

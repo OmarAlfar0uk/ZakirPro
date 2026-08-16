@@ -21,4 +21,5 @@ public class TeacherSubjectStage
     public ICollection<Lecture>                    Lectures     { get; set; } = [];
     public ICollection<StudentTeacherSubjectStage> StudentLinks { get; set; } = [];
     public ICollection<Exam>                       Exams        { get; set; } = [];
+    public ICollection<Assignment>                 Assignments  { get; set; } = [];
 }

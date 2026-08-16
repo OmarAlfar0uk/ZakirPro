@@ -9,4 +9,5 @@ public class Student : User
 
     // Navigation
     public ICollection<StudentTeacherSubjectStage> StudentTeacherLinks { get; set; } = [];
+    public ICollection<AssignmentSubmission>       AssignmentSubmissions { get; set; } = [];
 }

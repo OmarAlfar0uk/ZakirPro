@@ -29,6 +29,10 @@ public class AppDbContext : DbContext
     // ── Attendance ────────────────────────────────────────────────────────────
     public DbSet<Attendance> Attendances => Set<Attendance>();
 
+    // ── Assignments ───────────────────────────────────────────────────────────
+    public DbSet<Assignment>           Assignments           => Set<Assignment>();
+    public DbSet<AssignmentSubmission> AssignmentSubmissions => Set<AssignmentSubmission>();
+
     // ── Exam engine ───────────────────────────────────────────────────────────
     public DbSet<Exam>               Exams               => Set<Exam>();
     public DbSet<Question>           Questions           => Set<Question>();
@@ -50,13 +54,15 @@ public class AppDbContext : DbContext
             .HasValue<SuperAdminUser>("SuperAdmin");
 
         // ── Global soft-delete filters ────────────────────────────────────────
-        mb.Entity<User>()               .HasQueryFilter(u => !u.IsDeleted);
-        mb.Entity<Subject>()            .HasQueryFilter(s => !s.IsDeleted);
-        mb.Entity<Stage>()              .HasQueryFilter(s => !s.IsDeleted);
-        mb.Entity<Lecture>()            .HasQueryFilter(l => !l.IsDeleted);
-        mb.Entity<Exam>()               .HasQueryFilter(e => !e.IsDeleted);
-        mb.Entity<Question>()           .HasQueryFilter(q => !q.IsDeleted);
-        mb.Entity<StudentExamAttempt>() .HasQueryFilter(a => !a.IsDeleted);
+        mb.Entity<User>()                 .HasQueryFilter(u => !u.IsDeleted);
+        mb.Entity<Subject>()              .HasQueryFilter(s => !s.IsDeleted);
+        mb.Entity<Stage>()                .HasQueryFilter(s => !s.IsDeleted);
+        mb.Entity<Lecture>()              .HasQueryFilter(l => !l.IsDeleted);
+        mb.Entity<Exam>()                 .HasQueryFilter(e => !e.IsDeleted);
+        mb.Entity<Question>()             .HasQueryFilter(q => !q.IsDeleted);
+        mb.Entity<StudentExamAttempt>()   .HasQueryFilter(a => !a.IsDeleted);
+        mb.Entity<Assignment>()           .HasQueryFilter(a => !a.IsDeleted);
+        mb.Entity<AssignmentSubmission>() .HasQueryFilter(s => !s.IsDeleted);
 
         // ── Unique index: Email (among non-deleted users only) ─────────────────
         mb.Entity<User>()
@@ -92,6 +98,11 @@ public class AppDbContext : DbContext
         // ── Unique index: one attendance record per student per lecture ─────────
         mb.Entity<Attendance>()
             .HasIndex(a => new { a.StudentId, a.LectureId })
+            .IsUnique();
+
+        // ── Unique index: one submission per student per assignment ───────────
+        mb.Entity<AssignmentSubmission>()
+            .HasIndex(s => new { s.AssignmentId, s.StudentId })
             .IsUnique();
 
         // ── Relationships ──────────────────────────────────────────────────────
@@ -216,6 +227,27 @@ public class AppDbContext : DbContext
             .HasForeignKey(a => a.LectureId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Assignment → TeacherSubjectStage
+        mb.Entity<Assignment>()
+            .HasOne(a => a.TeacherSubjectStage)
+            .WithMany(ts => ts.Assignments)
+            .HasForeignKey(a => a.TeacherSubjectStageId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // AssignmentSubmission → Assignment
+        mb.Entity<AssignmentSubmission>()
+            .HasOne(s => s.Assignment)
+            .WithMany(a => a.Submissions)
+            .HasForeignKey(s => s.AssignmentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // AssignmentSubmission → Student
+        mb.Entity<AssignmentSubmission>()
+            .HasOne(s => s.Student)
+            .WithMany(st => st.AssignmentSubmissions)
+            .HasForeignKey(s => s.StudentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // ── Property constraints ───────────────────────────────────────────────
         mb.Entity<User>().Property(u => u.Email).HasMaxLength(256);
         mb.Entity<User>().Property(u => u.FullName).HasMaxLength(200);
@@ -228,5 +260,14 @@ public class AppDbContext : DbContext
         mb.Entity<Choice>().Property(c => c.Text).HasMaxLength(500);
 
         mb.Entity<StudentAnswer>().Property(sa => sa.EssayResponse).HasMaxLength(10000);
+
+        mb.Entity<Assignment>().Property(a => a.Title).HasMaxLength(300);
+        mb.Entity<Assignment>().Property(a => a.Description).HasMaxLength(4000);
+        mb.Entity<Assignment>().Property(a => a.MaxScore).HasPrecision(5, 2);
+
+        mb.Entity<AssignmentSubmission>().Property(s => s.FilePath).HasMaxLength(1000);
+        mb.Entity<AssignmentSubmission>().Property(s => s.Feedback).HasMaxLength(2000);
+        mb.Entity<AssignmentSubmission>().Property(s => s.Score).HasPrecision(5, 2);
+        mb.Entity<AssignmentSubmission>().Property(s => s.MaxScore).HasPrecision(5, 2);
     }
 }

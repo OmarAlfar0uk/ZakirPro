@@ -53,7 +53,9 @@ public class Handler : IRequestHandler<Query, EndpointResponse<TeacherSelfReport
                 TotalAttendances = t.TeacherSubjectStages.SelectMany(tss => tss.Lectures).SelectMany(l => l.Attendances).Count(),
                 PresentAttendances = t.TeacherSubjectStages.SelectMany(tss => tss.Lectures).SelectMany(l => l.Attendances).Count(a => a.Status == AttendanceStatus.Present),
                 GradedExamsCount = t.TeacherSubjectStages.SelectMany(tss => tss.Exams).SelectMany(e => e.Attempts).Count(sea => sea.AttemptStatus == AttemptStatus.Graded),
-                TotalExamScore = t.TeacherSubjectStages.SelectMany(tss => tss.Exams).SelectMany(e => e.Attempts).Where(sea => sea.AttemptStatus == AttemptStatus.Graded).Sum(sea => (decimal?)sea.FinalScore) ?? 0m
+                TotalExamScore = t.TeacherSubjectStages.SelectMany(tss => tss.Exams).SelectMany(e => e.Attempts).Where(sea => sea.AttemptStatus == AttemptStatus.Graded).Sum(sea => (decimal?)sea.FinalScore) ?? 0m,
+                TotalSubmissions = t.TeacherSubjectStages.SelectMany(tss => tss.Assignments).SelectMany(a => a.Submissions).Count(s => !s.IsDeleted && s.Status != AssignmentSubmissionStatus.NotSubmitted),
+                ExpectedSubmissions = t.TeacherSubjectStages.Sum(tss => tss.Assignments.Count(a => !a.IsDeleted) * tss.StudentLinks.Count(sl => sl.Student.IsActive && !sl.Student.IsDeleted))
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -62,6 +64,7 @@ public class Handler : IRequestHandler<Query, EndpointResponse<TeacherSelfReport
 
         var attendanceRate = teacher.TotalAttendances > 0 ? (decimal)teacher.PresentAttendances / teacher.TotalAttendances : 0m;
         var avgExamScore = teacher.GradedExamsCount > 0 ? teacher.TotalExamScore / teacher.GradedExamsCount : 0m;
+        var assignmentSubmissionRate = teacher.ExpectedSubmissions > 0 ? (decimal)teacher.TotalSubmissions / teacher.ExpectedSubmissions : 0m;
 
         var dto = new TeacherSelfReportDto(
             teacher.Id,
@@ -71,7 +74,7 @@ public class Handler : IRequestHandler<Query, EndpointResponse<TeacherSelfReport
             teacher.TotalExams,
             avgExamScore,
             attendanceRate,
-            0m // AssignmentSubmissionRate placeholder
+            assignmentSubmissionRate
         );
 
         return EndpointResponse<TeacherSelfReportDto>.SuccessResponse(dto);
