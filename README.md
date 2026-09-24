@@ -94,8 +94,7 @@ ZakirPro/
 │   ├── Controllers/              # RESTful API Controllers
 │   ├── Data/                     # ApplicationDbContext, Model Configurations & Migrations
 │   ├── Models/                   # Domain Entities (Exam, Question, Submission, User)
-│   ├── Program.cs                # Entry point, services pipeline, hosted service registration
-│   └── appsettings.json          # Configuration parameters
+│   └── Program.cs                # Entry point, services pipeline, hosted service registration
 └── ZakirPro.sln                  # Visual Studio Solution
 ```
 
@@ -115,31 +114,14 @@ ZakirPro/
    cd ZakirPro
    ```
 
-2. **Configure App Settings:**
-   Update `ZakirPro/appsettings.json`:
-   ```json
-   {
-     "ConnectionStrings": {
-       "DefaultConnection": "Server=localhost;Database=ZakirProDb;Trusted_Connection=True;TrustServerCertificate=True;"
-     },
-     "JwtSettings": {
-       "Secret": "your-ultra-secure-jwt-secret-key-32-chars-minimum",
-       "Issuer": "ZakirProAPI",
-       "Audience": "ZakirProUsers",
-       "ExpiryMinutes": 120
-     },
-     "MailSettings": {
-       "Host": "smtp.gmail.com",
-       "Port": 587,
-       "UserName": "notifications@zakirpro.com",
-       "Password": "YOUR_APP_SPECIFIC_PASSWORD"
-     }
-   }
+2. **Restore & Build Solution:**
+   ```bash
+   dotnet restore
+   dotnet build
    ```
 
-3. **Apply Migrations & Run:**
+3. **Run the Application:**
    ```bash
-   dotnet ef database update --project ZakirPro
    dotnet run --project ZakirPro
    ```
 
