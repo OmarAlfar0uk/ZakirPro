@@ -1,143 +1,75 @@
-<div align="center">
+# 📚 ZakirPro
 
-# 🧠 ZakirPro
-### Enterprise Examination Management & Automated Assessment Platform
+[![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?style=for-the-badge&logo=dotnet)](https://dotnet.microsoft.com/)
+[![C#](https://img.shields.io/badge/C%23-Modern-239120?style=for-the-badge&logo=c-sharp&logoColor=white)](https://docs.microsoft.com/en-us/dotnet/csharp/)
+[![Entity Framework Core](https://img.shields.io/badge/EF_Core-10.0-388E3C?style=for-the-badge&logo=nuget&logoColor=white)](https://docs.microsoft.com/en-us/ef/core/)
+[![Serilog](https://img.shields.io/badge/Serilog-Logging-FFC014?style=for-the-badge)]()
 
-[![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
-[![C#](https://img.shields.io/badge/C%23-12-239120?style=for-the-badge&logo=csharp&logoColor=white)](https://learn.microsoft.com/en-us/dotnet/csharp/)
-[![Background Worker](https://img.shields.io/badge/Worker-Hosted_Services-orange?style=for-the-badge&logo=dotnet&logoColor=white)](#-background-services)
-[![Architecture](https://img.shields.io/badge/Architecture-Clean%20%26%20Modular-blue?style=for-the-badge&logo=diagram-project&logoColor=white)](#-system-architecture)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellowgreen?style=for-the-badge)](LICENSE)
-[![Author](https://img.shields.io/badge/Author-Omar%20Alfarouk-orange?style=for-the-badge&logo=github&logoColor=white)](https://github.com/OmarAlfar0uk)
+**ZakirPro** is a bleeding-edge, production-grade school management API built on **.NET 10**. Architected with Clean Vertical Slices and CQRS, it offers advanced role-based access control, automatic exam submission via background services, comprehensive audit logging, and dynamic Excel exports.
 
-<p align="center">
-  <a href="#-key-features">Key Features</a> •
-  <a href="#-background-services">Background Services</a> •
-  <a href="#-tech-stack">Tech Stack</a> •
-  <a href="#-project-structure">Project Structure</a> •
-  <a href="#-getting-started">Getting Started</a> •
-  <a href="#-author">Author</a>
-</p>
-
-</div>
-
----
-
-## 📌 Executive Overview
-
-**ZakirPro** is a comprehensive educational testing and assessment management system architected for schools, universities, and certification bodies. Built on ASP.NET Core with strict adherence to Clean Architecture, ZakirPro automates the end-to-end lifecycle of student examinations—from randomized question generation and timed test-taking sessions to real-time auto-submission and instant grading.
-
-> [!NOTE]
-> Features an autonomous **`ExamAutoSubmitService`** background worker running on .NET's `IHostedService`, guaranteeing timed exam integrity even if students disconnect or navigate away.
-
----
-
-## ✨ Key Features
-
-| ⚡ Feature | 💡 Description | 🛠 Engineering Detail |
-|---|---|---|
-| **⏱️ Autonomous Exam Auto-Submit** | Background enforcement of strict test expiration times | Background worker (`ExamAutoSubmitService`) auditing active sessions |
-| **🔐 Stateless JWT Authentication** | Granular role-based authorization for Students & Instructors | Custom `JwtService` issuing cryptographic tokens with claim enforcement |
-| **📁 Secure File Storage Service** | Attachments, diagrams, and exam resource upload | Abstracted `IFileService` with content-type verification and hashing |
-| **📧 Automated Email Dispatch** | Exam invitations, submission receipts, and report cards | Integrated with MailKit via `MailKitEmailService` for asynchronous delivery |
-| **📊 Real-Time Analytics & Scoring** | Immediate automated evaluation of multiple-choice & numerical questions | Mathematical calculation engine with audit log retention |
-
----
-
-## ⚙️ Background Services
-
-The core differentiator in ZakirPro is its resilient background worker orchestration:
+## 🏗️ Architecture & Flow
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor Student
-    participant API as ZakirPro API
-    participant Worker as ⚙️ ExamAutoSubmitService
-    participant DB as SQL Server Database
-    participant Email as 📧 MailKit Service
-
-    Student->>API: Start Exam Session (Timer Begins)
-    API->>DB: Record ExamSession (StartTime, ExpiryTime, InProgress)
-    Note over Worker: Background Loop Checks Every N Seconds
-    Worker->>DB: Query Expired In-Progress Sessions
-    DB-->>Worker: Return Expired Sessions
-    Worker->>DB: Auto-Submit & Calculate Partial Score
-    Worker->>Email: Dispatch Completion Receipt to Student
-    Email-->>Student: Deliver Grade & Feedback Notification
+graph TD
+    Client((Client App)) --> |Minimal APIs| API[ZakirPro API]
+    API --> |Exception Middleware| Serilog[Serilog 30-Day Rolling Logs]
+    API --> |CQRS Pipeline| MediatR[MediatR 14.2]
+    MediatR --> |Behaviors| Validation[FluentValidation]
+    
+    MediatR --> |Unit of Work| Repo[Generic Repository]
+    Repo --> |EF Core 10| DB[(SQL Server)]
+    
+    API --> |Background Service| ExamAutoSubmit[ExamAutoSubmitService]
+    API --> |Excel Export| ClosedXML[ClosedXML]
 ```
 
----
+## ✨ Features
 
-## ⚡ Tech Stack
+| Feature | Description |
+|---------|-------------|
+| **.NET 10 Innovation** | Built utilizing the latest .NET 10 SDK for maximum performance and modern C# features. |
+| **Role-Based Access** | Deep hierarchy supporting SuperAdmin, Admin, Teacher, Assistant, and Student workflows. |
+| **Auto-Submit Service** | Hosted background service (`ExamAutoSubmitService`) that automatically submits expired exams. |
+| **Audit Logging** | Comprehensive action tracking via `IAuditLogger` for security and compliance. |
+| **Excel Export** | Dynamic generation and export of data to Excel spreadsheets using `ClosedXML`. |
+| **Clean CQRS Architecture**| Endpoints, Abstractions, Behaviors, and Infrastructure layers cleanly decoupled. |
+| **Robust Logging** | Global exception handling middleware paired with Serilog rolling file logs (30-day retention). |
 
-| Category | Technology | Purpose |
-|---|---|---|
-| **Core Platform** | ![.NET 8](https://img.shields.io/badge/.NET_8-512BD4?style=flat-square&logo=dotnet&logoColor=white) ![C#](https://img.shields.io/badge/C%23_12-239120?style=flat-square&logo=csharp&logoColor=white) | High-performance Web API and asynchronous task host |
-| **Background Processing** | ![Hosted Service](https://img.shields.io/badge/IHostedService-Background_Worker-orange?style=flat-square) | Scheduled cron and background exam session evaluation |
-| **Database & ORM** | ![EF Core](https://img.shields.io/badge/EF_Core-8.0-512BD4?style=flat-square&logo=dotnet&logoColor=white) ![SQL Server](https://img.shields.io/badge/MS_SQL_Server-CC292B?style=flat-square&logo=microsoftsqlserver&logoColor=white) | Relational model storage, migrations, and transactional updates |
-| **Security & Identity** | ![JWT](https://img.shields.io/badge/JWT-Authentication-black?style=flat-square&logo=jsonwebtokens&logoColor=white) | Secure token management via `ITokenService` / `JwtService` |
-| **Mailing** | ![MailKit](https://img.shields.io/badge/MailKit-SMTP-blue?style=flat-square) | Production-grade MIME-based email transport |
+## 🛠️ Tech Stack
 
----
+| Category | Technology |
+|----------|------------|
+| **Framework** | .NET 10.0, ASP.NET Core Minimal APIs |
+| **Architecture** | CQRS, Clean Vertical Slice |
+| **Data Access** | Entity Framework Core 10, SQL Server, Unit of Work & Generic Repository |
+| **Security** | JWT Bearer Authentication 10 |
+| **Libraries** | MediatR 14.2, FluentValidation 12, ClosedXML, MailKit 4.17, Serilog |
+| **Background Processing** | ASP.NET Core Hosted Services |
 
 ## 📂 Project Structure
 
 ```text
 ZakirPro/
-├── ZakirPro/
-│   ├── Common/
-│   │   ├── Abstractions/         # Contracts (ITokenService, IEmailService, IFileService)
-│   │   ├── BackgroundServices/   # ExamAutoSubmitService (IHostedService worker)
-│   │   ├── Extensions/           # Dependency injection & service registration
-│   │   └── Infrastructure/       # Concrete implementations (JwtService, MailKitEmailService)
-│   ├── Controllers/              # RESTful API Controllers
-│   ├── Data/                     # ApplicationDbContext, Model Configurations & Migrations
-│   ├── Models/                   # Domain Entities (Exam, Question, Submission, User)
-│   └── Program.cs                # Entry point, services pipeline, hosted service registration
-└── ZakirPro.sln                  # Visual Studio Solution
+├── Abstractions/        # Core interfaces (IAuditLogger, ITokenService, etc.)
+├── BackgroundServices/  # Hosted services (ExamAutoSubmitService)
+├── Behaviors/           # MediatR pipeline behaviors (ValidationBehavior)
+├── Endpoints/           # Minimal API endpoints by feature slice
+├── Infrastructure/      # Implementations (AuditLogger, JwtService, Repositories)
+├── Models/              # Domain entities (User, Admin, Teacher, Exam, etc.)
+└── Program.cs           # .NET 10 bootstrapper, Seeder, and Middleware setup
 ```
-
----
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- SQL Server (LocalDB or Docker)
+To get the project up and running locally, execute the following commands:
 
-### Setup Instructions
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/OmarAlfar0uk/ZakirPro.git
-   cd ZakirPro
-   ```
-
-2. **Restore & Build Solution:**
-   ```bash
-   dotnet restore
-   dotnet build
-   ```
-
-3. **Run the Application:**
-   ```bash
-   dotnet run --project ZakirPro
-   ```
+```bash
+git clone https://github.com/OmarAlfar0uk/ZakirPro.git
+cd ZakirPro
+dotnet restore
+dotnet run
+```
 
 ---
-
-## 👨‍💻 Author
-
-**Omar Alfarouk**  
-*Full-Stack .NET & Software Engineer*  
-
-- 🌐 **GitHub:** [@OmarAlfar0uk](https://github.com/OmarAlfar0uk)
-- 💼 **LinkedIn:** [omar-alfarouk](https://www.linkedin.com/in/omar-alfarouk-252471251/)
-- 📧 **Email:** [omaralfarouk646@gmail.com](mailto:omaralfarouk646@gmail.com)
-
----
-
-<div align="center">
-  <sub>Built with ❤️ by Omar Alfarouk. Licensed under the <a href="LICENSE">MIT License</a>.</sub>
-</div>
+**Author**  
+GitHub: [OmarAlfar0uk](https://github.com/OmarAlfar0uk) | LinkedIn: [omar-alfarouk-252471251](https://www.linkedin.com/in/omar-alfarouk-252471251/) | Email: [omaralfarouk646@gmail.com](mailto:omaralfarouk646@gmail.com)
